@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOUNCE BATTLE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            text-align: center;
+            position: relative;
+        }
+
+        canvas {
+            border: 4px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            background: #0f3460;
+        }
+
+        #ui {
+            color: white;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 800px;
+        }
+
+        .player-info {
+            flex: 1;
+            text-align: center;
+        }
+
+        .player-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .health-bar {
+            width: 150px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            margin: 10px auto;
+            overflow: hidden;
+            border: 2px solid #fff;
+        }
+
+        .health-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .player1-health {
+            background: linear-gradient(90deg, #ff4444, #cc0000);
+        }
+
+        .player2-health {
+            background: linear-gradient(90deg, #4444ff, #0000cc);
+        }
+
+        .score-dots {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .score-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            transition: all 0.3s ease;
+        }
+
+        .score-dot.filled {
+            background: currentColor;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .score-dot.half {
+            background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .bullets {
+            font-size: 18px;
+            margin-top: 5px;
+            color: #FFA500;
+        }
+
+        .controls {
+            font-size: 11px;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        .center-score {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .center-score .score-dots {
+            gap: 12px;
+        }
+
+        .center-score .score-dot {
+            width: 25px;
+            height: 25px;
+            border: 4px solid #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-display {
+            font-size: 10px;
+            margin-top: 5px;
+            color: #FFD700;
+            min-height: 12px;
+            font-weight: bold;
+        }
+
+
+        #cardSelection {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.98) 0%, rgba(22, 33, 62, 0.98) 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            z-index: 10;
+            min-width: 650px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        #cardSelection h2 {
+            margin-bottom: 10px;
+            font-size: 32px;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        #cardSelection p {
+            margin-bottom: 25px;
+            font-size: 16px;
+            color: #E0E0E0;
+        }
+
+        .card-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .card {
+            width: 160px;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 3px solid #FFD700;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover {
+            transform: translateY(-12px) scale(1.08);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.6);
+            border-color: #FFF;
+            background: linear-gradient(135deg, #7b8ef1 0%, #8a5bb8 100%);
+        }
+
+        .card h3 {
+            font-size: 19px;
+            margin-bottom: 12px;
+            color: #FFD700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+        }
+
+        .card p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #F0F0F0;
+        }
+
+        #gameOver {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.98) 0%, rgba(22, 33, 62, 0.98) 100%);
+            color: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 10;
+            min-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        #gameOver h2 {
+            font-size: 42px;
+            margin-bottom: 20px;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        #gameOver p {
+            font-size: 20px;
+            color: #E0E0E0;
+            margin-bottom: 10px;
+        }
+
+        #gameOver button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 2px solid #FFD700;
+            padding: 18px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #gameOver button:hover {
+            background: linear-gradient(135deg, #7b8ef1 0%, #8a5bb8 100%);
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .parry-indicator {
+            position: absolute;
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 14px;
+            pointer-events: none;
+            text-shadow: 0 0 10px #FFD700;
+        }
+
+        #colorPicker {
+            display: flex;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            z-index: 100;
+            gap: 40px;
+        }
+
+        .color-section {
+            text-align: center;
+        }
+
+        .color-section h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 60px);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .color-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: transform 0.2s, border 0.2s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+            border: 3px solid white;
+        }
+
+        .color-option.selected {
+            border: 4px solid #FFD700;
+            transform: scale(1.15);
+        }
+
+        #startGameBtn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #startGameBtn:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div id="colorPicker">
+        <h1 style="font-size: 48px; color: #FFD700; text-shadow: 3px 3px 6px rgba(0,0,0,0.5); margin-bottom: 30px;">⚡ BOUNCE BATTLE ⚡</h1>
+        <div class="color-section">
+            <h2>🔴 Player 1 Color</h2>
+            <div class="color-grid" id="player1Colors"></div>
+        </div>
+        <div class="color-section">
+            <h2>🔵 Player 2 Color</h2>
+            <div class="color-grid" id="player2Colors"></div>
+        </div>
+        <button id="startGameBtn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="gameContainer" style="display: none;">
+        <div id="ui">
+            <div class="player-info">
+                <h3>🔴 Player 1</h3>
+                <div class="health-bar">
+                    <div class="health-fill player1-health" id="player1Health" style="width: 100%"></div>
+                </div>
+                <div class="bullets">Ammo: <span id="player1Bullets">3</span></div>
+                <div class="controls">WASD: Move | SPACE: Shoot | SHIFT: Parry</div>
+                <div class="card-display" id="player1Cards"></div>
+            </div>
+            <div class="player-info">
+                <h3>🔵 Player 2</h3>
+                <div class="health-bar">
+                    <div class="health-fill player2-health" id="player2Health" style="width: 100%"></div>
+                </div>
+                <div class="bullets">Ammo: <span id="player2Bullets">3</span></div>
+                <div class="controls">Arrows: Move | M: Shoot | N: Parry</div>
+                <div class="card-display" id="player2Cards"></div>
+            </div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <!-- Center score display -->
+        <div class="center-score">
+            <div class="score-dots" id="player1CenterDots">
+                <div class="score-dot" style="color: #FF4444;"></div>
+                <div class="score-dot" style="color: #FF4444;"></div>
+                <div class="score-dot" style="color: #FF4444;"></div>
+                <div class="score-dot" style="color: #FF4444;"></div>
+                <div class="score-dot" style="color: #FF4444;"></div>
+            </div>
+            <div class="score-dots" id="player2CenterDots">
+                <div class="score-dot" style="color: #4444FF;"></div>
+                <div class="score-dot" style="color: #4444FF;"></div>
+                <div class="score-dot" style="color: #4444FF;"></div>
+                <div class="score-dot" style="color: #4444FF;"></div>
+                <div class="score-dot" style="color: #4444FF;"></div>
+            </div>
+        </div>
+        
+        <div id="cardSelection">
+            <h2 id="cardWinner"></h2>
+            <p>Choose one card to upgrade your abilities:</p>
+            <div class="card-container" id="cardContainer"></div>
+        </div>
+
+        <div id="gameOver">
+            <h2 id="winnerText"></h2>
+            <p id="finalScores"></p>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
+
+        <div id="colorSelection" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.95); color: white; padding: 40px; border-radius: 15px; z-index: 20; text-align: center;">
+            <h2 style="margin-bottom: 30px;">Choose Your Colors</h2>
+            <div style="display: flex; gap: 50px; justify-content: center;">
+                <div>
+                    <h3>🔴 Player 1</h3>
+                    <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 200px;">
+                        <div onclick="selectColor(1, '#FF4444')" style="width: 40px; height: 40px; background: #FF4444; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(1, '#FF6B35')" style="width: 40px; height: 40px; background: #FF6B35; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(1, '#FFD700')" style="width: 40px; height: 40px; background: #FFD700; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(1, '#00FF00')" style="width: 40px; height: 40px; background: #00FF00; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(1, '#00FFFF')" style="width: 40px; height: 40px; background: #00FFFF; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(1, '#FF00FF')" style="width: 40px; height: 40px; background: #FF00FF; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(1, '#FFFFFF')" style="width: 40px; height: 40px; background: #FFFFFF; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(1, '#FFA500')" style="width: 40px; height: 40px; background: #FFA500; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                    </div>
+                    <p id="p1ColorChoice" style="margin-top: 15px;">Selected: Red</p>
+                </div>
+                <div>
+                    <h3>🔵 Player 2</h3>
+                    <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 200px;">
+                        <div onclick="selectColor(2, '#4444FF')" style="width: 40px; height: 40px; background: #4444FF; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(2, '#FF6B35')" style="width: 40px; height: 40px; background: #FF6B35; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(2, '#FFD700')" style="width: 40px; height: 40px; background: #FFD700; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(2, '#00FF00')" style="width: 40px; height: 40px; background: #00FF00; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(2, '#00FFFF')" style="width: 40px; height: 40px; background: #00FFFF; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(2, '#FF00FF')" style="width: 40px; height: 40px; background: #FF00FF; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(2, '#FFFFFF')" style="width: 40px; height: 40px; background: #FFFFFF; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                        <div onclick="selectColor(2, '#FFA500')" style="width: 40px; height: 40px; background: #FFA500; border: 3px solid white; border-radius: 5px; cursor: pointer;"></div>
+                    </div>
+                    <p id="p2ColorChoice" style="margin-top: 15px;">Selected: Blue</p>
+                </div>
+            </div>
+            <button onclick="startGameWithColors()" style="background: #667eea; color: white; border: none; padding: 15px 40px; font-size: 18px; border-radius: 5px; cursor: pointer; margin-top: 30px;">Start Game</button>
+        </div>
+    </div>
+
+    <script>
+        // Color selection
+        const colors = [
+            '#FF4444', '#FF6B6B', '#FF0000', '#CC0000',
+            '#4444FF', '#6B6BFF', '#0000FF', '#0000CC',
+            '#44FF44', '#6BFF6B', '#00FF00', '#00CC00',
+            '#FFFF44', '#FFFF6B', '#FFD700', '#FFA500',
+            '#FF44FF', '#FF6BFF', '#FF00FF', '#CC00CC',
+            '#44FFFF', '#6BFFFF', '#00FFFF', '#00CCCC',
+            '#FFFFFF', '#CCCCCC', '#888888', '#444444'
+        ];
+
+        let selectedColors = {
+            player1: '#FF4444',
+            player2: '#4444FF'
+        };
+
+        // Populate color grids
+        function initColorPicker() {
+            const p1Grid = document.getElementById('player1Colors');
+            const p2Grid = document.getElementById('player2Colors');
+            
+            colors.forEach(color => {
+                const option1 = document.createElement('div');
+                option1.className = 'color-option';
+                option1.style.background = color;
+                if (color === selectedColors.player1) option1.classList.add('selected');
+                option1.onclick = () => selectColor('player1', color, option1);
+                p1Grid.appendChild(option1);
+                
+                const option2 = document.createElement('div');
+                option2.className = 'color-option';
+                option2.style.background = color;
+                if (color === selectedColors.player2) option2.classList.add('selected');
+                option2.onclick = () => selectColor('player2', color, option2);
+                p2Grid.appendChild(option2);
+            });
+        }
+
+        function selectColor(player, color, element) {
+            selectedColors[player] = color;
+            const grid = element.parentElement;
+            grid.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function startGame() {
+            document.getElementById('colorPicker').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            initGame();
+        }
+
+        initColorPicker();
+
+        function initGame() {
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Color name mapping
+        const colorNames = {
+            '#FF4444': 'Red',
+            '#4444FF': 'Blue',
+            '#FF6B35': 'Orange',
+            '#FFD700': 'Gold',
+            '#00FF00': 'Green',
+            '#00FFFF': 'Cyan',
+            '#FF00FF': 'Magenta',
+            '#FFFFFF': 'White',
+            '#FFA500': 'Orange'
+        };
+
+        // Color selection
+        function selectColor(player, color) {
+            if (player === 1) {
+                player1Color = color;
+                document.getElementById('p1ColorChoice').textContent = 'Selected: ' + colorNames[color];
+            } else {
+                player2Color = color;
+                document.getElementById('p2ColorChoice').textContent = 'Selected: ' + colorNames[color];
+            }
+        }
+
+        function startGameWithColors() {
+            document.getElementById('colorSelection').style.display = 'none';
+            player1.color = player1Color;
+            player2.color = player2Color;
+            gameStarted = true;
+            gameRunning = true;
+        }
+
+        // Game state
+        let gameRunning = true;
+        let gameStarted = true;
+        let keys = {};
+        let currentRound = 1;
+        let maxRounds = 5;
+        let waitingForCardSelection = false;
+        let cardWinner = null;
+        let player1SelectedCards = []; // Track P1's card choices
+        let player2SelectedCards = []; // Track P2's card choices
+        let player1Color = '#FF4444';
+        let player2Color = '#4444FF';
+
+        const cardTypes = [
+            // Basic upgrades
+            { name: "+20 Max Health", abbrev: "MaxHP+", effect: "maxHealth", value: 20, description: "Increase max health by 20" },
+            { name: "+30 Health", abbrev: "Heal+", effect: "health", value: 30, description: "Instantly heal 30 HP" },
+            { name: "+1 Damage", abbrev: "DMG+", effect: "damage", value: 1, description: "Bullets deal +1 damage" },
+            { name: "Fast Bullets", abbrev: "FastShot", effect: "bulletSpeed", value: 3, description: "Bullets move faster" },
+            { name: "Quick Reload", abbrev: "QuickLoad", effect: "reloadSpeed", value: -1000, description: "Reload 1s faster" },
+            { name: "+1 Max Ammo", abbrev: "Ammo+", effect: "maxBullets", value: 1, description: "Carry one more bullet" },
+            { name: "Life Steal", abbrev: "LifeSteal", effect: "lifeSteal", value: 5, description: "Heal 5 HP per hit" },
+            { name: "Long Parry", abbrev: "LongParry", effect: "parryDuration", value: 200, description: "Parry window lasts longer" },
+            { name: "Quick Parry", abbrev: "QuikParry", effect: "parryCooldown", value: -1000, description: "Parry cooldown reduced by 1s" },
+            { name: "Speed Boost", abbrev: "Speed+", effect: "speed", value: 1, description: "Move faster" },
+            { name: "High Jump", abbrev: "HighJump", effect: "jumpPower", value: 2, description: "Jump higher" },
+            { name: "Triple Jump", abbrev: "3xJump", effect: "maxJumps", value: 1, description: "Gain an extra jump" },
+            { name: "Low Gravity", abbrev: "LowGrav", effect: "gravity", value: -0.1, description: "Fall slower, float longer" },
+            { name: "Bullet Size", abbrev: "BigBullet", effect: "bulletSize", value: 2, description: "Bigger bullets, easier hits" },
+            { name: "Piercing Shot", abbrev: "Piercing", effect: "piercing", value: 1, description: "Bullets go through platforms" },
+            
+            // Advanced cards with tradeoffs
+            { name: "Homing Bullets", abbrev: "Homing", effect: "homing", value: 1, tradeoff: "bulletSpeed", tradeoffValue: -3, description: "Bullets track enemies but move slower" },
+            { name: "Explosive Shot", abbrev: "Explosive", effect: "explosive", value: 1, tradeoff: "shootCooldown", tradeoffValue: 1000, description: "Bullets explode on impact, +1s reload" },
+            { name: "Growing Bullets", abbrev: "Growing", effect: "growing", value: 1, tradeoff: "damage", tradeoffValue: -5, description: "Bullets gain damage over distance, -5 base damage" },
+            { name: "Parasite Shot", abbrev: "Parasite", effect: "parasite", value: 1, tradeoff: "damage", tradeoffValue: -5, description: "Damage over 5 seconds, -5 impact damage" },
+            { name: "Barrage", abbrev: "Barrage", effect: "barrage", value: 1, tradeoff: "shootCooldown", tradeoffValue: 2000, description: "Fire 3 bullets at once, +2s reload" },
+            { name: "Tactical Reload", abbrev: "TacReload", effect: "tacticalReload", value: 1, tradeoff: "maxBullets", tradeoffValue: -1, description: "Parry reloads weapon, -1 max ammo" },
+            { name: "Rapid Fire", abbrev: "RapidFire", effect: "shootCooldown", value: -1500, tradeoff: "damage", tradeoffValue: -5, description: "Reload 1.5s faster, -5 damage" },
+            { name: "Heavy Rounds", abbrev: "HeavyRnd", effect: "damage", value: 10, tradeoff: "shootCooldown", tradeoffValue: 1500, description: "+10 damage, +1.5s reload time" },
+            { name: "Lightweight", abbrev: "LightWgt", effect: "speed", value: 2, tradeoff: "maxHealth", tradeoffValue: -20, description: "+2 speed, -20 max health" },
+            { name: "Tank Mode", abbrev: "Tank", effect: "maxHealth", value: 40, tradeoff: "speed", tradeoffValue: -2, description: "+40 max health, -2 speed" },
+            { name: "Glass Cannon", abbrev: "GlassCan", effect: "damage", value: 15, tradeoff: "maxHealth", tradeoffValue: -30, description: "+15 damage, -30 max health" },
+            { name: "Evasion", abbrev: "Evasion", effect: "parryCooldown", value: -1500, tradeoff: "maxHealth", tradeoffValue: -15, description: "Parry cooldown -1.5s, -15 max health" },
+            
+            // NEW unique cards
+            { name: "Berserker", abbrev: "Berserk", effect: "damage", value: 20, tradeoff: "maxHealth", tradeoffValue: -50, description: "+20 damage, -50 max health" },
+            { name: "Regeneration", abbrev: "Regen", effect: "health", value: 2, description: "Heal 2 HP per second" },
+            { name: "Double Tap", abbrev: "2xTap", effect: "bulletCount", value: 1, tradeoff: "shootCooldown", tradeoffValue: 1000, description: "Fire 2 bullets per shot, +1s reload" },
+            { name: "Juggernaut", abbrev: "Jugger", effect: "maxHealth", value: 60, tradeoff: "speed", tradeoffValue: -3, description: "+60 max health, -3 speed, unstoppable" },
+            { name: "Ninja", abbrev: "Ninja", effect: "speed", value: 3, tradeoff: "damage", tradeoffValue: -10, description: "+3 speed, -10 damage, swift strikes" },
+            { name: "Sniper", abbrev: "Sniper", effect: "damage", value: 25, tradeoff: "shootCooldown", tradeoffValue: 2500, description: "+25 damage, +2.5s reload, one shot" },
+            { name: "Vampiric", abbrev: "Vampire", effect: "lifeSteal", value: 15, tradeoff: "maxHealth", tradeoffValue: -25, description: "Heal 15 HP per hit, -25 max health" },
+            { name: "Fortress", abbrev: "Fortress", effect: "maxHealth", value: 80, tradeoff: "gravity", tradeoffValue: 0.3, description: "+80 max health, fall faster, heavy armor" },
+            { name: "Assassin", abbrev: "Assassin", effect: "damage", value: 30, tradeoff: "maxBullets", tradeoffValue: -2, description: "+30 damage, -2 max ammo, deadly precision" },
+            { name: "Phoenix", abbrev: "Phoenix", effect: "health", value: 50, tradeoff: "maxBullets", tradeoffValue: -1, description: "Heal 50 HP, -1 max ammo, rebirth" },
+        ];
+
+        // Bullet class
+        class Bullet {
+            constructor(x, y, velocityX, velocityY, owner, damage, radius = 5, piercing = false) {
+                this.x = x;
+                this.y = y;
+                this.velocityX = velocityX;
+                this.velocityY = velocityY;
+                this.radius = radius;
+                this.owner = owner;
+                this.active = true;
+                this.damage = damage;
+                this.piercing = piercing;
+                this.distanceTraveled = 0;
+                this.creationTime = Date.now();
+                this.homing = owner.homing;
+                this.explosive = owner.explosive;
+                this.growing = owner.growing;
+                this.parasite = owner.parasite;
+            }
+
+            update() {
+                const oldX = this.x;
+                const oldY = this.y;
+                
+                // Homing logic
+                if (this.homing) {
+                    const target = this.owner === player1 ? player2 : player1;
+                    const dx = (target.x + target.width/2) - this.x;
+                    const dy = (target.y + target.height/2) - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist > 0) {
+                        const homingStrength = 0.3;
+                        this.velocityX += (dx / dist) * homingStrength;
+                        this.velocityY += (dy / dist) * homingStrength;
+                        
+                        // Normalize speed
+                        const speed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY);
+                        const targetSpeed = this.owner.bulletSpeed;
+                        this.velocityX = (this.velocityX / speed) * targetSpeed;
+                        this.velocityY = (this.velocityY / speed) * targetSpeed;
+                    }
+                }
+                
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+                
+                // Track distance for growing bullets
+                const dx = this.x - oldX;
+                const dy = this.y - oldY;
+                this.distanceTraveled += Math.sqrt(dx * dx + dy * dy);
+
+                // Check if bullet goes off screen (kills it)
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.active = false;
+                }
+
+                // Check platform collisions (only if not piercing)
+                if (!this.piercing) {
+                    platforms.forEach(platform => {
+                        if (this.checkCollision(platform)) {
+                            if (this.explosive) {
+                                this.explode();
+                            }
+                            this.active = false;
+                        }
+                    });
+                }
+            }
+            
+            explode() {
+                // Visual explosion effect
+                const explosionRadius = 40;
+                ctx.fillStyle = 'rgba(255, 100, 0, 0.6)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, explosionRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Damage nearby enemy
+                const enemy = this.owner === player1 ? player2 : player1;
+                const dx = (enemy.x + enemy.width/2) - this.x;
+                const dy = (enemy.y + enemy.height/2) - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < explosionRadius) {
+                    const explosionDamage = Math.floor(this.damage * 0.5); // 50% extra splash damage
+                    enemy.takeDamage(explosionDamage, this.owner);
+                }
+            }
+            
+            getDamage() {
+                let finalDamage = this.damage;
+                
+                // Growing bullets gain damage over distance
+                if (this.growing) {
+                    const damageBonus = Math.floor(this.distanceTraveled / 50); // +1 damage per 50 pixels
+                    finalDamage += damageBonus;
+                }
+                
+                return finalDamage;
+            }
+
+            checkCollision(rect) {
+                return this.x > rect.x &&
+                       this.x < rect.x + rect.width &&
+                       this.y > rect.y &&
+                       this.y < rect.y + rect.height;
+            }
+
+            draw() {
+                ctx.fillStyle = this.owner.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#FFF';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        // Player class
+        class Player {
+            constructor(x, y, color, controls, healthBarId) {
+                this.x = x;
+                this.y = y;
+                this.width = 30;
+                this.height = 30;
+                this.color = color;
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.speed = 5;
+                this.jumpPower = 12;
+                this.gravity = 0.5;
+                this.onGround = false;
+                this.jumpsLeft = 2;
+                this.maxJumps = 2;
+                this.controls = controls;
+                this.maxHealth = 100;
+                this.health = 100;
+                this.healthBarId = healthBarId;
+                this.bulletDisplayId = healthBarId.replace('Health', 'Bullets');
+                this.wins = 0;
+                this.facingRight = true;
+                this.canShoot = true;
+                this.shootCooldown = 3000;
+                this.lastShotTime = -this.shootCooldown;
+                this.damage = 30;
+                this.bulletSpeed = 10;
+                this.maxBullets = 3;
+                this.currentBullets = 3;
+                this.bulletCount = 1;
+                this.isParrying = false;
+                this.parryDuration = 300;
+                this.parryCooldown = 4000;
+                this.lastParryTime = -this.parryCooldown;
+                this.parryActive = false;
+                this.shootKeyPressed = false;
+                this.jumpKeyPressed = false;
+                this.parryKeyPressed = false;
+                this.lifeSteal = 0;
+                this.bulletSize = 5;
+                this.piercing = false;
+                this.isReloading = false;
+                this.reloadStartTime = 0;
+                // Advanced card properties
+                this.homing = false;
+                this.explosive = false;
+                this.growing = false;
+                this.parasite = false;
+                this.barrage = false;
+                this.tacticalReload = false;
+                this.regeneration = 0;
+                this.lastRegenTime = Date.now();
+                this.damageFlash = false;
+                this.damageFlashTime = 0;
+            }
+
+            reset(x, y) {
+                this.x = x;
+                this.y = y;
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.health = this.maxHealth;
+                this.currentBullets = this.maxBullets;
+                this.updateHealthBar();
+                this.updateBulletDisplay();
+            }
+
+            update() {
+                if (waitingForCardSelection) return;
+                
+                // Regeneration
+                if (this.regeneration > 0) {
+                    const now = Date.now();
+                    if (now - this.lastRegenTime >= 1000) {
+                        this.health = Math.min(this.health + this.regeneration, this.maxHealth);
+                        this.updateHealthBar();
+                        this.lastRegenTime = now;
+                    }
+                }
+
+                // Horizontal movement
+                if (keys[this.controls.left]) {
+                    this.velocityX = -this.speed;
+                    this.facingRight = false;
+                } else if (keys[this.controls.right]) {
+                    this.velocityX = this.speed;
+                    this.facingRight = true;
+                } else {
+                    this.velocityX = 0;
+                }
+
+                // Jumping (double jump - no holding)
+                if (keys[this.controls.jump] && this.jumpsLeft > 0 && !this.jumpKeyPressed) {
+                    // Second jump is weaker (80% power)
+                    const jumpMultiplier = this.jumpsLeft === this.maxJumps ? 1 : 0.8;
+                    this.velocityY = -this.jumpPower * jumpMultiplier;
+                    this.jumpsLeft--;
+                    this.onGround = false;
+                    this.jumpKeyPressed = true;
+                } else if (!keys[this.controls.jump]) {
+                    this.jumpKeyPressed = false;
+                }
+
+                // Shooting (single shot, no holding)
+                if (keys[this.controls.shoot] && !this.shootKeyPressed) {
+                    this.shoot();
+                    this.shootKeyPressed = true;
+                } else if (!keys[this.controls.shoot]) {
+                    this.shootKeyPressed = false;
+                }
+
+                // Parrying (no holding)
+                if (keys[this.controls.parry] && !this.parryKeyPressed) {
+                    this.startParry();
+                    this.parryKeyPressed = true;
+                } else if (!keys[this.controls.parry]) {
+                    this.parryKeyPressed = false;
+                }
+
+                // Apply gravity
+                this.velocityY += this.gravity;
+
+                // Update position
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+
+                // Check if player hits border (bounce back with damage or parry save)
+                let hitBorder = false;
+                let borderDirection = { x: 0, y: 0 };
+                
+                // Check left and right edges
+                if (this.x + this.width < 0) {
+                    hitBorder = true;
+                    borderDirection.x = 1; // Bounce right
+                } else if (this.x > canvas.width) {
+                    hitBorder = true;
+                    borderDirection.x = -1; // Bounce left
+                }
+                
+                // Check top and bottom edges
+                if (this.y < 0) {
+                    hitBorder = true;
+                    borderDirection.y = 1; // Bounce down from top
+                } else if (this.y > canvas.height) {
+                    hitBorder = true;
+                    borderDirection.y = -1; // Bounce up from bottom
+                }
+                
+                if (hitBorder) {
+                    if (this.parryActive) {
+                        // Parry save - big launch back with no damage!
+                        if (borderDirection.x !== 0) {
+                            this.velocityX = borderDirection.x * 25; // Increased from 15
+                        }
+                        if (borderDirection.y !== 0) {
+                            // Bounce in opposite direction of border
+                            this.velocityY = borderDirection.y * 18;
+                        }
+                        this.x = Math.max(10, Math.min(this.x, canvas.width - this.width - 10));
+                        this.y = Math.max(10, Math.min(this.y, canvas.height - this.height - 10));
+                        showParryIndicator(this);
+                        showBorderHit(this, true);
+                    } else {
+                        // Regular bounce - quarter health damage and strong launch
+                        const damage = Math.floor(this.maxHealth * 0.25);
+                        this.health -= damage;
+                        this.updateHealthBar();
+                        
+                        // Stronger bounce back from sides
+                        if (borderDirection.x !== 0) {
+                            this.velocityX = borderDirection.x * 15; // Increased from 8
+                        }
+                        if (borderDirection.y !== 0) {
+                            // Bounce in opposite direction of border
+                            this.velocityY = borderDirection.y * 12;
+                        }
+                        this.x = Math.max(10, Math.min(this.x, canvas.width - this.width - 10));
+                        this.y = Math.max(10, Math.min(this.y, canvas.height - this.height - 10));
+                        
+                        showBorderHit(this, false);
+                        
+                        // Check if died from border damage
+                        if (this.health <= 0) {
+                            this.die();
+                        }
+                    }
+                }
+
+                // Check platform collisions
+                this.onGround = false;
+                platforms.forEach(platform => {
+                    if (this.checkCollision(platform)) {
+                        // Landing on top
+                        if (this.velocityY > 0 && this.y + this.height - this.velocityY <= platform.y + 5) {
+                            this.y = platform.y - this.height;
+                            this.velocityY = 0;
+                            this.onGround = true;
+                            this.jumpsLeft = this.maxJumps; // Reset jumps on landing
+                        }
+                        // Hitting from below
+                        else if (this.velocityY < 0 && this.y - this.velocityY >= platform.y + platform.height - 5) {
+                            this.y = platform.y + platform.height;
+                            this.velocityY = 0;
+                        }
+                        // Side collisions
+                        else {
+                            if (this.x < platform.x) {
+                                this.x = platform.x - this.width;
+                            } else {
+                                this.x = platform.x + platform.width;
+                            }
+                            this.velocityX = 0;
+                        }
+                    }
+                });
+
+                // Update parry state
+                if (this.parryActive && Date.now() - this.lastParryTime > this.parryDuration) {
+                    this.parryActive = false;
+                }
+            }
+
+            startParry() {
+                const now = Date.now();
+                if (now - this.lastParryTime >= this.parryCooldown) {
+                    this.parryActive = true;
+                    this.lastParryTime = now;
+                    showParryIndicator(this);
+                    
+                    // Tactical Reload: parrying reloads weapon
+                    if (this.tacticalReload) {
+                        this.currentBullets = this.maxBullets;
+                        this.isReloading = false;
+                        this.updateBulletDisplay();
+                    }
+                }
+            }
+
+            shoot() {
+                const now = Date.now();
+                // Only shoot if we have bullets and no bullets from this player are currently active
+                const hasActiveBullets = bullets.some(b => b.owner === this && b.active);
+                
+                if (this.currentBullets > 0 && !hasActiveBullets && now - this.lastShotTime >= 100) {
+                    this.lastShotTime = now;
+                    this.currentBullets--;
+                    this.updateBulletDisplay();
+                    
+                    const offsetX = this.facingRight ? this.width : 0;
+                    const directionX = this.facingRight ? 1 : -1;
+                    
+                    // Barrage: Fire 3 bullets at once in spread pattern
+                    if (this.barrage) {
+                        bullets.push(new Bullet(
+                            this.x + offsetX,
+                            this.y + this.height / 2,
+                            directionX * this.bulletSpeed,
+                            0,
+                            this,
+                            this.damage,
+                            this.bulletSize,
+                            this.piercing
+                        ));
+                        bullets.push(new Bullet(
+                            this.x + offsetX,
+                            this.y + this.height / 2,
+                            directionX * this.bulletSpeed * 0.9,
+                            -2,
+                            this,
+                            this.damage,
+                            this.bulletSize,
+                            this.piercing
+                        ));
+                        bullets.push(new Bullet(
+                            this.x + offsetX,
+                            this.y + this.height / 2,
+                            directionX * this.bulletSpeed * 0.9,
+                            2,
+                            this,
+                            this.damage,
+                            this.bulletSize,
+                            this.piercing
+                        ));
+                    } else {
+                        // Normal: Fire one bullet
+                        bullets.push(new Bullet(
+                            this.x + offsetX,
+                            this.y + this.height / 2,
+                            directionX * this.bulletSpeed,
+                            0,
+                            this,
+                            this.damage,
+                            this.bulletSize,
+                            this.piercing
+                        ));
+                    }
+                    
+                    // Auto-reload after shooting all bullets
+                    if (this.currentBullets === 0) {
+                        this.isReloading = true;
+                        this.reloadStartTime = Date.now();
+                        setTimeout(() => {
+                            this.currentBullets = this.maxBullets;
+                            this.isReloading = false;
+                            this.updateBulletDisplay();
+                        }, this.shootCooldown);
+                    }
+                }
+            }
+
+            checkCollision(rect) {
+                return this.x < rect.x + rect.width &&
+                       this.x + this.width > rect.x &&
+                       this.y < rect.y + rect.height &&
+                       this.y + this.height > rect.y;
+            }
+
+            takeDamage(damage, attacker) {
+                if (this.parryActive) return false; // Parried!
+                
+                this.health -= damage;
+                this.updateHealthBar();
+                
+                // Trigger damage flash
+                this.damageFlash = true;
+                this.damageFlashTime = Date.now();
+                
+                // Life steal for attacker
+                if (attacker && attacker.lifeSteal > 0) {
+                    const healAmount = Math.min(attacker.lifeSteal, damage);
+                    attacker.health = Math.min(attacker.health + healAmount, attacker.maxHealth);
+                    attacker.updateHealthBar();
+                }
+                
+                if (this.health <= 0) {
+                    this.die();
+                }
+                return true;
+            }
+
+            die() {
+                const winner = this === player1 ? player2 : player1;
+                const loser = this;
+                
+                // Winner gets one full point (fills one dot)
+                winner.wins++;
+                updateScoreDots();
+                
+                // Check if winner has 5 dots filled (wins the match)
+                if (winner.wins >= 5) {
+                    endGame();
+                    return;
+                }
+                
+                // LOSER gets the card!
+                cardWinner = loser;
+                showCardSelection(loser);
+            }
+
+            updateHealthBar() {
+                const percentage = Math.max(0, (this.health / this.maxHealth) * 100);
+                document.getElementById(this.healthBarId).style.width = percentage + '%';
+            }
+
+            updateBulletDisplay() {
+                document.getElementById(this.bulletDisplayId).textContent = `${this.currentBullets}/${this.maxBullets}`;
+            }
+
+            applyCard(card) {
+                // Apply main effect
+                switch(card.effect) {
+                    case 'maxHealth':
+                        this.maxHealth += card.value;
+                        this.health = Math.min(this.health + card.value, this.maxHealth);
+                        break;
+                    case 'health':
+                        this.health = Math.min(this.health + card.value, this.maxHealth);
+                        break;
+                    case 'damage':
+                        this.damage += card.value;
+                        break;
+                    case 'bulletSpeed':
+                        this.bulletSpeed += card.value;
+                        break;
+                    case 'reloadSpeed':
+                        this.shootCooldown = Math.max(1000, this.shootCooldown + card.value);
+                        break;
+                    case 'shootCooldown':
+                        this.shootCooldown = Math.max(1000, this.shootCooldown + card.value);
+                        break;
+                    case 'maxBullets':
+                        this.maxBullets = Math.max(1, this.maxBullets + card.value);
+                        this.currentBullets = Math.min(this.currentBullets, this.maxBullets);
+                        break;
+                    case 'lifeSteal':
+                        this.lifeSteal += card.value;
+                        break;
+                    case 'parryDuration':
+                        this.parryDuration += card.value;
+                        break;
+                    case 'parryCooldown':
+                        this.parryCooldown = Math.max(1000, this.parryCooldown + card.value);
+                        break;
+                    case 'speed':
+                        this.speed = Math.max(1, this.speed + card.value);
+                        break;
+                    case 'jumpPower':
+                        this.jumpPower += card.value;
+                        break;
+                    case 'maxJumps':
+                        this.maxJumps += card.value;
+                        this.jumpsLeft = this.maxJumps;
+                        break;
+                    case 'gravity':
+                        this.gravity = Math.max(0.1, this.gravity + card.value);
+                        break;
+                    case 'bulletSize':
+                        this.bulletSize += card.value;
+                        break;
+                    case 'piercing':
+                        this.piercing = true;
+                        break;
+                    case 'homing':
+                        this.homing = true;
+                        break;
+                    case 'explosive':
+                        this.explosive = true;
+                        break;
+                    case 'growing':
+                        this.growing = true;
+                        break;
+                    case 'parasite':
+                        this.parasite = true;
+                        break;
+                    case 'barrage':
+                        this.barrage = true;
+                        break;
+                    case 'tacticalReload':
+                        this.tacticalReload = true;
+                        break;
+                    case 'bulletCount':
+                        this.bulletCount += card.value;
+                        break;
+                    case 'regeneration':
+                        this.regeneration += card.value;
+                        break;
+                }
+                
+                // Apply tradeoff if exists
+                if (card.tradeoff) {
+                    switch(card.tradeoff) {
+                        case 'bulletSpeed':
+                            this.bulletSpeed = Math.max(3, this.bulletSpeed + card.tradeoffValue);
+                            break;
+                        case 'shootCooldown':
+                            this.shootCooldown += card.tradeoffValue;
+                            break;
+                        case 'damage':
+                            this.damage = Math.max(1, this.damage + card.tradeoffValue);
+                            break;
+                        case 'maxBullets':
+                            this.maxBullets = Math.max(1, this.maxBullets + card.tradeoffValue);
+                            this.currentBullets = Math.min(this.currentBullets, this.maxBullets);
+                            break;
+                        case 'speed':
+                            this.speed = Math.max(1, this.speed + card.tradeoffValue);
+                            break;
+                        case 'maxHealth':
+                            this.maxHealth = Math.max(20, this.maxHealth + card.tradeoffValue);
+                            this.health = Math.min(this.health, this.maxHealth);
+                            break;
+                    }
+                }
+                
+                this.updateHealthBar();
+                this.updateBulletDisplay();
+            }
+
+            draw() {
+                // Draw parry cooldown indicator (circle above player)
+                const now = Date.now();
+                const timeSinceParry = now - this.lastParryTime;
+                const parryProgress = Math.min(1, timeSinceParry / this.parryCooldown);
+                
+                // Draw massive outer glow for maximum visibility
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = parryProgress >= 1 ? '#00FF00' : '#FF0000';
+                
+                // Draw background circle (very dark for contrast)
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width/2, this.y - 15, 12, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw cooldown circle outline (extra thick and bright)
+                ctx.strokeStyle = parryProgress >= 1 ? '#00FF00' : '#FF0000';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(this.x + this.width/2, this.y - 15, 12, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Fill progress (extremely bright)
+                if (parryProgress < 1) {
+                    ctx.fillStyle = '#FF0000';
+                } else {
+                    ctx.fillStyle = '#00FF00';
+                }
+                ctx.beginPath();
+                ctx.arc(this.x + this.width/2, this.y - 15, 10, -Math.PI/2, -Math.PI/2 + (parryProgress * Math.PI * 2));
+                ctx.lineTo(this.x + this.width/2, this.y - 15);
+                ctx.fill();
+                
+                // Add white center dot when ready
+                if (parryProgress >= 1) {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width/2, this.y - 15, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Reset shadow
+                ctx.shadowBlur = 0;
+                
+                // Draw parry shield
+                if (this.parryActive) {
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                // Check if damage flash should still be active (reuse 'now' from above)
+                if (this.damageFlash && now - this.damageFlashTime > 200) {
+                    this.damageFlash = false;
+                }
+
+                // Draw player with damage flash effect
+                if (this.damageFlash) {
+                    // Add red glow when damaged
+                    ctx.shadowBlur = 25;
+                    ctx.shadowColor = '#FF0000';
+                    ctx.fillStyle = '#FF6666'; // Lighter red tint
+                } else {
+                    ctx.fillStyle = this.color;
+                }
+                
+                ctx.beginPath();
+                ctx.arc(this.x + this.width/2, this.y + this.height/2, this.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Reset shadow after drawing player
+                if (this.damageFlash) {
+                    ctx.shadowBlur = 0;
+                }
+                
+                // Draw eyes
+                ctx.fillStyle = 'white';
+                const eyeOffsetX = this.facingRight ? 6 : -6;
+                ctx.beginPath();
+                ctx.arc(this.x + this.width/2 + eyeOffsetX - 4, this.y + this.height/2 - 3, 4, 0, Math.PI * 2);
+                ctx.arc(this.x + this.width/2 + eyeOffsetX + 4, this.y + this.height/2 - 3, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width/2 + eyeOffsetX - 4, this.y + this.height/2 - 3, 2, 0, Math.PI * 2);
+                ctx.arc(this.x + this.width/2 + eyeOffsetX + 4, this.y + this.height/2 - 3, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw gun
+                ctx.fillStyle = '#333';
+                const gunX = this.facingRight ? this.x + this.width : this.x - 15;
+                ctx.fillRect(gunX, this.y + this.height/2 - 2, 15, 4);
+                
+                // Draw bullets on gun
+                const bulletDisplayX = this.facingRight ? this.x + this.width + 5 : this.x - 20;
+                const bulletDisplayY = this.y + this.height/2 - 10;
+                
+                for (let i = 0; i < this.currentBullets; i++) {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(bulletDisplayX, bulletDisplayY - (i * 6), 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#FFF';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                
+                // Draw reload indicator at gun/ammo location - SMALLER & BRIGHT
+                if (this.currentBullets === 0) {
+                    const now = Date.now();
+                    const timeSinceLastShot = now - this.lastShotTime;
+                    const reloadProgress = Math.min(timeSinceLastShot / this.shootCooldown, 1);
+                    
+                    // Position at ammo display location
+                    const reloadX = bulletDisplayX;
+                    const reloadY = bulletDisplayY;
+                    
+                    // Glow effect
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = reloadProgress >= 1 ? '#00FF00' : '#FFAA00';
+                    
+                    // Dark background circle for contrast
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+                    ctx.beginPath();
+                    ctx.arc(reloadX, reloadY, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Outer circle (thick and bright)
+                    ctx.strokeStyle = reloadProgress >= 1 ? '#00FF00' : '#FFAA00';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(reloadX, reloadY, 8, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // Progress arc (extremely bright)
+                    ctx.strokeStyle = reloadProgress >= 1 ? '#00FF00' : '#FFAA00';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(reloadX, reloadY, 8, -Math.PI/2, -Math.PI/2 + (Math.PI * 2 * reloadProgress));
+                    ctx.stroke();
+                    
+                    // Fill progress
+                    ctx.fillStyle = reloadProgress >= 1 ? '#00FF00' : '#FFAA00';
+                    ctx.globalAlpha = 0.7;
+                    ctx.beginPath();
+                    ctx.moveTo(reloadX, reloadY);
+                    ctx.arc(reloadX, reloadY, 6.5, -Math.PI/2, -Math.PI/2 + (Math.PI * 2 * reloadProgress));
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    
+                    // Add white center dot when ready
+                    if (reloadProgress >= 1) {
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.beginPath();
+                        ctx.arc(reloadX, reloadY, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    // Reset shadow
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        // Platform class
+        class Platform {
+            constructor(x, y, width, height, colorScheme = 0) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.colorScheme = colorScheme;
+            }
+
+            draw() {
+                // Platform color variations based on level
+                const schemes = [
+                    { main: '#1a472a', border: '#0d2818' },  // Green
+                    { main: '#8B4513', border: '#5C2E0A' },  // Brown/wood
+                    { main: '#4A4A4A', border: '#2A2A2A' },  // Gray stone
+                    { main: '#2C3E50', border: '#1A252F' },  // Blue-gray
+                    { main: '#5D4037', border: '#3E2723' },  // Dark brown
+                    { main: '#455A64', border: '#263238' },  // Blue-gray 2
+                ];
+                
+                const scheme = schemes[this.colorScheme];
+                
+                // Add shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(this.x + 5, this.y + 5, this.width, this.height);
+                
+                // Main platform
+                ctx.fillStyle = scheme.main;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // Border
+                ctx.strokeStyle = scheme.border;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(this.x, this.y, this.width, this.height);
+                
+                // Highlight on top
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x + this.width, this.y);
+                ctx.stroke();
+            }
+        }
+
+        // Level generation
+        let platforms = [];
+        
+        function generateLevel() {
+            platforms = [];
+            const levelType = Math.floor(Math.random() * 6);
+            const colorScheme = Math.floor(Math.random() * 6);
+            
+            switch(levelType) {
+                case 0: // Castle/Temple style
+                    // Base platform
+                    platforms.push(new Platform(200, 500, 400, 30, colorScheme));
+                    // Side towers
+                    platforms.push(new Platform(50, 400, 100, 20, colorScheme));
+                    platforms.push(new Platform(650, 400, 100, 20, colorScheme));
+                    // Mid platforms
+                    platforms.push(new Platform(250, 350, 80, 20, colorScheme));
+                    platforms.push(new Platform(470, 350, 80, 20, colorScheme));
+                    // Upper sides
+                    platforms.push(new Platform(100, 250, 120, 20, colorScheme));
+                    platforms.push(new Platform(580, 250, 120, 20, colorScheme));
+                    // Top center
+                    platforms.push(new Platform(350, 150, 100, 20, colorScheme));
+                    break;
+                    
+                case 1: // Mountain/Pyramid style
+                    // Bottom wide
+                    platforms.push(new Platform(150, 500, 500, 30, colorScheme));
+                    // Mid level
+                    platforms.push(new Platform(200, 400, 400, 25, colorScheme));
+                    // Upper
+                    platforms.push(new Platform(250, 300, 300, 20, colorScheme));
+                    // Top small
+                    platforms.push(new Platform(350, 200, 100, 20, colorScheme));
+                    // Side steps
+                    platforms.push(new Platform(50, 450, 80, 20, colorScheme));
+                    platforms.push(new Platform(670, 450, 80, 20, colorScheme));
+                    platforms.push(new Platform(100, 350, 70, 20, colorScheme));
+                    platforms.push(new Platform(630, 350, 70, 20, colorScheme));
+                    break;
+                    
+                case 2: // Floating islands
+                    // Center
+                    platforms.push(new Platform(325, 350, 150, 20, colorScheme));
+                    // Left side
+                    platforms.push(new Platform(50, 300, 120, 20, colorScheme));
+                    platforms.push(new Platform(80, 450, 100, 20, colorScheme));
+                    // Right side  
+                    platforms.push(new Platform(630, 300, 120, 20, colorScheme));
+                    platforms.push(new Platform(620, 450, 100, 20, colorScheme));
+                    // Upper platforms
+                    platforms.push(new Platform(200, 200, 100, 20, colorScheme));
+                    platforms.push(new Platform(500, 200, 100, 20, colorScheme));
+                    // Top center
+                    platforms.push(new Platform(350, 100, 100, 20, colorScheme));
+                    break;
+                    
+                case 3: // Multi-level symmetric
+                    // Bottom
+                    platforms.push(new Platform(300, 500, 200, 25, colorScheme));
+                    // Lower sides
+                    platforms.push(new Platform(100, 450, 150, 20, colorScheme));
+                    platforms.push(new Platform(550, 450, 150, 20, colorScheme));
+                    // Mid center
+                    platforms.push(new Platform(325, 350, 150, 20, colorScheme));
+                    // Upper sides
+                    platforms.push(new Platform(150, 250, 120, 20, colorScheme));
+                    platforms.push(new Platform(530, 250, 120, 20, colorScheme));
+                    // Small top platforms
+                    platforms.push(new Platform(50, 150, 80, 15, colorScheme));
+                    platforms.push(new Platform(670, 150, 80, 15, colorScheme));
+                    // Center top
+                    platforms.push(new Platform(350, 150, 100, 20, colorScheme));
+                    break;
+                    
+                case 4: // Scattered chaos
+                    platforms.push(new Platform(350, 450, 100, 20, colorScheme));
+                    platforms.push(new Platform(150, 380, 100, 20, colorScheme));
+                    platforms.push(new Platform(550, 380, 100, 20, colorScheme));
+                    platforms.push(new Platform(250, 300, 80, 20, colorScheme));
+                    platforms.push(new Platform(470, 300, 80, 20, colorScheme));
+                    platforms.push(new Platform(100, 220, 90, 20, colorScheme));
+                    platforms.push(new Platform(610, 220, 90, 20, colorScheme));
+                    platforms.push(new Platform(350, 200, 100, 20, colorScheme));
+                    platforms.push(new Platform(200, 140, 70, 15, colorScheme));
+                    platforms.push(new Platform(530, 140, 70, 15, colorScheme));
+                    break;
+                    
+                case 5: // Arena style with center stage
+                    // Center stage
+                    platforms.push(new Platform(300, 350, 200, 25, colorScheme));
+                    // Corner platforms
+                    platforms.push(new Platform(50, 450, 100, 20, colorScheme));
+                    platforms.push(new Platform(650, 450, 100, 20, colorScheme));
+                    platforms.push(new Platform(50, 200, 100, 20, colorScheme));
+                    platforms.push(new Platform(650, 200, 100, 20, colorScheme));
+                    // Side platforms
+                    platforms.push(new Platform(200, 250, 80, 20, colorScheme));
+                    platforms.push(new Platform(520, 250, 80, 20, colorScheme));
+                    // Small top
+                    platforms.push(new Platform(375, 150, 50, 15, colorScheme));
+                    break;
+            }
+        }
+        
+        // Generate initial level
+        generateLevel();
+        
+        // Find spawn positions on platforms
+        function getSpawnPositions() {
+            // Find a good center-ish platform for spawning
+            let spawnPlatform = platforms.find(p => p.x + p.width/2 > 250 && p.x + p.width/2 < 550 && p.y < 500);
+            
+            // Fallback to first platform if no center one found
+            if (!spawnPlatform) spawnPlatform = platforms[0];
+            
+            const player1X = spawnPlatform.x + spawnPlatform.width * 0.25 - 15;
+            const player2X = spawnPlatform.x + spawnPlatform.width * 0.75 - 15;
+            const spawnY = spawnPlatform.y - 35; // Spawn above the platform
+            
+            return {
+                p1: { x: player1X, y: spawnY },
+                p2: { x: player2X, y: spawnY }
+            };
+        }
+        
+        let spawnPos = getSpawnPositions();
+
+        // Create players (spawning on center platform)
+        const player1 = new Player(spawnPos.p1.x, spawnPos.p1.y, selectedColors.player1, {
+            left: 'a',
+            right: 'd',
+            jump: 'w',
+            shoot: ' ',
+            parry: 'Shift'
+        }, 'player1Health');
+
+        const player2 = new Player(spawnPos.p2.x, spawnPos.p2.y, selectedColors.player2, {
+            left: 'ArrowLeft',
+            right: 'ArrowRight',
+            jump: 'ArrowUp',
+            shoot: 'm',
+            parry: 'n'
+        }, 'player2Health');
+
+        // Bullets array
+        let bullets = [];
+
+        // Input handling
+        document.addEventListener('keydown', (e) => {
+            // Prevent default for game keys to avoid browser shortcuts
+            if (['Shift', 'ShiftLeft', 'ShiftRight', ' ', 'a', 'd', 'w', 's', 
+                 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'm', 'n'].includes(e.key.toLowerCase()) ||
+                ['ShiftLeft', 'ShiftRight', 'Space'].includes(e.code)) {
+                e.preventDefault();
+            }
+            
+            // Normalize letter keys to lowercase to prevent Shift issues
+            const normalizedKey = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+            
+            keys[normalizedKey] = true;
+            keys[e.code] = true; // Also track by code for Shift keys
+            
+            // Special handling for Shift key
+            if (e.key === 'Shift' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+                keys['Shift'] = true;
+                keys['ShiftLeft'] = true;
+                keys['ShiftRight'] = true;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            // Normalize letter keys to lowercase
+            const normalizedKey = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+            
+            keys[normalizedKey] = false;
+            keys[e.code] = false;
+            
+            // Also clear both uppercase and lowercase versions
+            if (e.key.length === 1) {
+                keys[e.key.toLowerCase()] = false;
+                keys[e.key.toUpperCase()] = false;
+            }
+            
+            // Special handling for Shift key release
+            if (e.key === 'Shift' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+                // Only clear Shift if both shift keys are released
+                if (!e.shiftKey) {
+                    keys['Shift'] = false;
+                    keys['ShiftLeft'] = false;
+                    keys['ShiftRight'] = false;
+                }
+            }
+        });
+
+        // Clear all keys when window loses focus (prevents stuck keys)
+        window.addEventListener('blur', () => {
+            for (let key in keys) {
+                keys[key] = false;
+            }
+        });
+
+        // Show parry indicator
+        function showParryIndicator(player) {
+            const indicator = document.createElement('div');
+            indicator.className = 'parry-indicator';
+            indicator.textContent = 'PARRY!';
+            indicator.style.left = (canvas.offsetLeft + player.x) + 'px';
+            indicator.style.top = (canvas.offsetTop + player.y - 30) + 'px';
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => indicator.remove(), 500);
+        }
+
+        // Show border hit indicator
+        function showBorderHit(player, isParry) {
+            const indicator = document.createElement('div');
+            indicator.className = 'parry-indicator';
+            indicator.textContent = isParry ? 'SAVED!' : 'OUCH!';
+            indicator.style.left = (canvas.offsetLeft + player.x) + 'px';
+            indicator.style.top = (canvas.offsetTop + player.y - 30) + 'px';
+            indicator.style.color = isParry ? '#00FF00' : '#FF0000';
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => indicator.remove(), 500);
+        }
+
+        // Update score dots display
+        function updateScoreDots() {
+            const p1CenterDots = document.getElementById('player1CenterDots').children;
+            const p2CenterDots = document.getElementById('player2CenterDots').children;
+            
+            // Update player 1 center dots
+            for (let i = 0; i < 5; i++) {
+                p1CenterDots[i].classList.remove('filled', 'half');
+                if (i < player1.wins) {
+                    p1CenterDots[i].classList.add('filled');
+                }
+            }
+            
+            // Update player 2 center dots
+            for (let i = 0; i < 5; i++) {
+                p2CenterDots[i].classList.remove('filled', 'half');
+                if (i < player2.wins) {
+                    p2CenterDots[i].classList.add('filled');
+                }
+            }
+        }
+
+        // Update card displays
+        function updateCardDisplays() {
+            const p1Display = document.getElementById('player1Cards');
+            const p2Display = document.getElementById('player2Cards');
+            
+            if (player1SelectedCards.length > 0) {
+                p1Display.textContent = 'Cards: ' + player1SelectedCards.join(', ');
+            } else {
+                p1Display.textContent = '';
+            }
+            
+            if (player2SelectedCards.length > 0) {
+                p2Display.textContent = 'Cards: ' + player2SelectedCards.join(', ');
+            } else {
+                p2Display.textContent = '';
+            }
+        }
+
+        // Show card selection
+        function showCardSelection(winner) {
+            waitingForCardSelection = true;
+            gameRunning = false;
+            
+            const cardSelection = document.getElementById('cardSelection');
+            const cardContainer = document.getElementById('cardContainer');
+            const cardWinnerText = document.getElementById('cardWinner');
+            
+            cardWinnerText.textContent = (winner === player1 ? '🔴 Player 1' : '🔵 Player 2') + ' lost the round!';
+            
+            // Select 5 random cards
+            const selectedCards = [];
+            const availableCards = [...cardTypes];
+            
+            for (let i = 0; i < 5; i++) {
+                const randomIndex = Math.floor(Math.random() * availableCards.length);
+                selectedCards.push(availableCards.splice(randomIndex, 1)[0]);
+            }
+            
+            // Display cards
+            cardContainer.innerHTML = '';
+            selectedCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.innerHTML = `
+                    <h3>${card.name}</h3>
+                    <p>${card.description}</p>
+                `;
+                cardElement.onclick = () => selectCard(winner, card);
+                cardContainer.appendChild(cardElement);
+            });
+            
+            cardSelection.style.display = 'block';
+        }
+
+        // Select card and continue
+        function selectCard(winner, card) {
+            winner.applyCard(card);
+            
+            // Track the card selection for this player
+            if (winner === player1) {
+                player1SelectedCards.push(card.abbrev);
+            } else {
+                player2SelectedCards.push(card.abbrev);
+            }
+            updateCardDisplays();
+            
+            document.getElementById('cardSelection').style.display = 'none';
+            
+            // Generate new level for next round
+            generateLevel();
+            spawnPos = getSpawnPositions();
+            
+            // Reset for next round
+            player1.reset(spawnPos.p1.x, spawnPos.p1.y);
+            player2.reset(spawnPos.p2.x, spawnPos.p2.y);
+            bullets = [];
+            
+            waitingForCardSelection = false;
+            gameRunning = true;
+        }
+
+        // End game
+        function endGame() {
+            gameRunning = false;
+            const gameOverDiv = document.getElementById('gameOver');
+            const winnerText = document.getElementById('winnerText');
+            const finalScores = document.getElementById('finalScores');
+            
+            if (player1.wins > player2.wins) {
+                winnerText.textContent = '🔴 Player 1 Wins the Match!';
+            } else if (player2.wins > player1.wins) {
+                winnerText.textContent = '🔵 Player 2 Wins the Match!';
+            } else {
+                winnerText.textContent = "It's a Tie!";
+            }
+            
+            finalScores.textContent = `Player 1: ${player1.wins} rounds | Player 2: ${player2.wins} rounds`;
+            gameOverDiv.style.display = 'block';
+        }
+
+        // Restart game
+        function restartGame() {
+            gameRunning = true;
+            gameStarted = true;
+            player1SelectedCards = [];
+            player2SelectedCards = [];
+            player1.wins = 0;
+            player2.wins = 0;
+            player1.maxHealth = 100;
+            player2.maxHealth = 100;
+            player1.damage = 30;
+            player2.damage = 30;
+            player1.bulletSpeed = 10;
+            player2.bulletSpeed = 10;
+            player1.shootCooldown = 3000;
+            player2.shootCooldown = 3000;
+            player1.maxBullets = 3;
+            player2.maxBullets = 3;
+            player1.bulletCount = 1;
+            player2.bulletCount = 1;
+            player1.parryDuration = 300;
+            player2.parryDuration = 300;
+            player1.parryCooldown = 4000;
+            player2.parryCooldown = 4000;
+            player1.speed = 5;
+            player2.speed = 5;
+            player1.jumpPower = 12;
+            player2.jumpPower = 12;
+            player1.maxJumps = 2;
+            player2.maxJumps = 2;
+            player1.gravity = 0.5;
+            player2.gravity = 0.5;
+            player1.lifeSteal = 0;
+            player2.lifeSteal = 0;
+            player1.bulletSize = 5;
+            player2.bulletSize = 5;
+            player1.piercing = false;
+            player2.piercing = false;
+            player1.homing = false;
+            player2.homing = false;
+            player1.explosive = false;
+            player2.explosive = false;
+            player1.growing = false;
+            player2.growing = false;
+            player1.parasite = false;
+            player2.parasite = false;
+            player1.barrage = false;
+            player2.barrage = false;
+            player1.tacticalReload = false;
+            player2.tacticalReload = false;
+            
+            // Generate new level
+            generateLevel();
+            spawnPos = getSpawnPositions();
+            
+            player1.reset(spawnPos.p1.x, spawnPos.p1.y);
+            player2.reset(spawnPos.p2.x, spawnPos.p2.y);
+            bullets = [];
+            
+            document.getElementById('gameOver').style.display = 'none';
+            updateScoreDots();
+            updateCardDisplays();
+        }
+
+        // Draw background
+        function drawBackground() {
+            const gradient = ctx.createRadialGradient(400, 300, 100, 400, 300, 500);
+            gradient.addColorStop(0, '#0f3460');
+            gradient.addColorStop(1, '#16213e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw stars
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            for (let i = 0; i < 50; i++) {
+                const x = (i * 137) % canvas.width;
+                const y = (i * 241) % canvas.height;
+                ctx.fillRect(x, y, 2, 2);
+            }
+        }
+
+        // Game loop
+        function gameLoop() {
+            // Clear canvas
+            drawBackground();
+
+            // Draw platforms
+            platforms.forEach(platform => platform.draw());
+
+            // Always draw players (even during color selection)
+            player1.draw();
+            player2.draw();
+
+            if (gameRunning && gameStarted) {
+                // Update and draw bullets
+                bullets = bullets.filter(bullet => {
+                    bullet.update();
+                    
+                    // Check bullet hits on players
+                    if (bullet.active) {
+                        [player1, player2].forEach(player => {
+                            if (bullet.owner !== player) {
+                                const dx = bullet.x - (player.x + player.width/2);
+                                const dy = bullet.y - (player.y + player.height/2);
+                                const distance = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (distance < bullet.radius + player.width/2) {
+                                    if (player.parryActive) {
+                                        // Parry - reverse bullet
+                                        bullet.velocityX = -bullet.velocityX;
+                                        bullet.velocityY = -bullet.velocityY;
+                                        bullet.owner = player;
+                                        showParryIndicator(player);
+                                    } else {
+                                        const finalDamage = bullet.getDamage();
+                                        player.takeDamage(finalDamage, bullet.owner);
+                                        
+                                        // Parasite: Apply damage over time
+                                        if (bullet.parasite) {
+                                            let ticksLeft = 5;
+                                            const parasiteDamage = Math.floor(finalDamage * 0.5 / 5); // 50% more damage over 5 ticks
+                                            const parasiteInterval = setInterval(() => {
+                                                if (ticksLeft > 0 && player.health > 0) {
+                                                    player.takeDamage(parasiteDamage, bullet.owner);
+                                                    ticksLeft--;
+                                                } else {
+                                                    clearInterval(parasiteInterval);
+                                                }
+                                            }, 1000);
+                                        }
+                                        
+                                        // Explosive: Explode on hit
+                                        if (bullet.explosive) {
+                                            bullet.explode();
+                                        }
+                                        
+                                        bullet.active = false;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    
+                    if (bullet.active) {
+                        bullet.draw();
+                    }
+                    
+                    return bullet.active;
+                });
+
+                // Update and draw players
+                player1.update();
+                player2.update();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start game loop
+        updateScoreDots(); // Initialize score dots
+        gameLoop();
+        } // End of initGame
+    </script>
+</body>
+</html>
