@@ -198,23 +198,6 @@ Your selected cards appear below your controls as abbreviated names (e.g., "Card
 - ✅ Press-to-shoot (no holding)
 - ✅ Visual damage indicators (OUCH!/SAVED!)
 
-## 🐛 Troubleshooting
-
-**Game doesn't load on GitHub Pages?**
-- Make sure the file is named exactly `index.html`
-- Check that GitHub Pages is enabled in Settings
-- Wait 5-10 minutes after enabling Pages for the first time
-
-**Controls not working?**
-- Click on the game canvas area to ensure it has focus
-- Make sure you're pressing the correct keys for your player
-- Check if keys are stuck (press them again to reset)
-
-**Parry not working?**
-- Make sure you're within the cooldown period (2 seconds by default)
-- The golden shield should appear when parry is active
-- You must parry BEFORE the bullet hits you
-
 ## 🏆 Win Condition
 
 **First player to win 3 out of 5 rounds wins the match!**
@@ -224,11 +207,5 @@ The game tracks:
 - Current round number
 - Health remaining
 - Overall match winner
-
-## 📜 License
-
-Feel free to modify and use this game however you like!
-
----
 
 **Have fun and may the best player win!** 🎮⚔️
