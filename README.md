@@ -176,53 +176,6 @@ Your selected cards appear below your controls as abbreviated names (e.g., "Card
 13. **Comebacks are Real** - Down 0-4? You'll get 4 cards to turn it around!
 14. **Watch the Dots** - Always know how many rounds until victory
 
-## 🚀 Deploying to GitHub Pages
-
-Want to share your game online? Follow these steps:
-
-### 1. Create a GitHub Repository
-
-1. Go to [GitHub](https://github.com) and sign in
-2. Click the **+** icon in the top right and select "New repository"
-3. Name your repository (e.g., `bounce-battle`)
-4. Make it **Public**
-5. Click "Create repository"
-
-### 2. Upload Your Game
-
-#### Option A: Using GitHub Web Interface (Easiest)
-1. In your new repository, click "uploading an existing file"
-2. Drag and drop the `index.html` file
-3. Click "Commit changes"
-
-#### Option B: Using Git Command Line
-```bash
-git init
-git add index.html
-git commit -m "Initial commit - BOUNCE BATTLE"
-git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
-git push -u origin main
-```
-
-### 3. Enable GitHub Pages
-
-1. Go to your repository on GitHub
-2. Click **Settings** (top right)
-3. Scroll down to **Pages** (in the left sidebar under "Code and automation")
-4. Under "Source", select **main** branch
-5. Click **Save**
-6. Wait a few minutes for GitHub to build your site
-
-### 4. Access Your Game
-
-Your game will be available at:
-```
-https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/
-```
-
-For example: `https://johndoe.github.io/bounce-battle/`
-
 ## 🎨 Game Features
 
 - ✅ **Half-round system** - 2 halves per round (0.5 points each)
@@ -244,24 +197,6 @@ For example: `https://johndoe.github.io/bounce-battle/`
 - ✅ Strategic ammo management
 - ✅ Press-to-shoot (no holding)
 - ✅ Visual damage indicators (OUCH!/SAVED!)
-
-## 🛠️ Customization Ideas
-
-Want to mod the game? Here are some ideas:
-
-### Easy Modifications
-- **Change starting health**: Edit `maxHealth: 100` in the Player class
-- **Adjust parry timing**: Change `parryDuration: 300` and `parryCooldown: 2000`
-- **Add more platforms**: Add entries to the `platforms` array
-- **Change colors**: Modify player colors in the Player constructor
-
-### Advanced Modifications
-- **Add new card types**: Add to the `cardTypes` array
-- **Create new weapons**: Add different bullet types
-- **Add power-ups**: Create collectibles on platforms
-- **Add sound effects**: Use Web Audio API
-- **Create new arenas**: Design different platform layouts
-- **Add special moves**: Implement dash or wall jump
 
 ## 🐛 Troubleshooting
 
