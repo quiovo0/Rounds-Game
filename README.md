@@ -1,4 +1,4 @@
-# ⚡ BOUNCE BATTLE ⚡         Tinyurl.com/RoundsGaame.com
+# ⚡ BOUNCE BATTLE ⚡         [Tinyurl.com/RoundsGaame.com](https://tinyurl.com/RoundsGaame)
 
 An intense local multiplayer platformer shooter where two players battle across 5 rounds! Master the parry system, bounce off borders, and build your ultimate loadout with 37 unique upgrade cards.
 
